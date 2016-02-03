@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+	<title>Fancytree - Configurator</title>
+
+	<script src="D:/docs/docs/ui/js/jquery-2.1.0.min.js"></script>
+	<script src="D:/docs/docs/ui/js/jquery-ui.min.js"></script>
+	<script src="lib/jquery.json-2.4.min.js" type="text/javascript"></script>	
+	<link href="lib/ui.fancytree.css" rel="stylesheet" type="text/css">
+	<link type="text/css" rel="stylesheet" href="lib/jquery-ui.css" />
+	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="lib/prettify.css" rel="stylesheet" type="text/css">
+
+	<script src="lib/jquery.fancytree.min.js" type="text/javascript"></script>
+	<script src="lib/jquery.configurator.js" type="text/javascript"></script>
+
+	<script src="lib/run_prettify.js?autoload=true&amp;skin=sunburst"></script>
+	<!-- jquery-contextmenu (https://github.com/mar10/jquery-ui-contextmenu/) -->
+   <script src="lib/jquery.ui-contextmenu.min.js" type="text/javascript"></script>
+  
+  <script src="lib/jquery.fancytree.dnd.js" type="text/javascript"></script>
+  <script src="lib/jquery.fancytree.edit.js" type="text/javascript"></script>
+  <script src="lib/jquery.fancytree.gridnav.js" type="text/javascript"></script>
+  <script src="lib/jquery.fancytree.table.js" type="text/javascript"></script>
+  
+   <script src="bootstrap/js/bootstrap.min.js"></script>
+   <script src="bootstrap/js/bootstrap-dropdown-multilevel.js"></script>
+   <script src="lib/angular.min.js"></script>
+   <script src="process.js" type="text/javascript"></script>
+
+	<!-- Start_Exclude: This block is not part of the sample code  
+	<link href="sample.css" rel="stylesheet" type="text/css">
+	<script src="sample.js" type="text/javascript"></script>
+	  End_Exclude -->
+
+<style type="text/css">
+	div#tree{
+		width: 400px;
+		float: left;
+	}
+	div#options li{
+		list-style-type: none;
+	}
+</style>
+	<style>
+	.green {
+      background-color: green;
+      color: #ffffff;
+    }
+	 
+
+	</style>
+<!-- Add code to initialize the tree when the document is loaded: -->
+
+</head>
+
+<body >
+<img src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABGdBTUEAALGP
+C/xhBQAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9YGARc5KB0XV+IA
+AAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAF1J
+REFUGNO9zL0NglAAxPEfdLTs4BZM4DIO4C7OwQg2JoQ9LE1exdlYvBBeZ7jq
+ch9//q1uH4TLzw4d6+ErXMMcXuHWxId3KOETnnXXV6MJpcq2MLaI97CER3N0
+vr4MkhoXe0rZigAAAABJRU5ErkJggg==" alt="Red dot" />
+	<h1>Fancytree option configurator</h1>
+	 <div>
+    <label for="skinswitcher">Skin:</label> <select id="skinswitcher"></select>
+  </div>
+	<div class="description">
+		This sample shows, how titles could displayed as aligned columns.
+	</div>
+	<p class="warning">
+		TODO: this is work in progress.
+	</p>
+	<div>
+		<label for="skinswitcher">Skin:</label> <select id="skinswitcher"></select>
+	</div>
+	<p>
+    <table id="tree">
+ 
+    <thead>
+      <tr>  <th></th></tr>
+     </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+<!-- 
+<ul class="nav"><li><a href="javascript:void(0)" data-target="#sub4" data-toggle="collapse"  >4:Computers</a>
+<ul class="nav collapse" id="sub4">
+<li><a href="#" >5:Tablet</a></li>
+<li><a href="javascript:void(0)" data-target="#sub7" data-toggle="collapse"  >7:Notebook</a>
+<ul class="nav collapse" id="sub7">
+<li><a href="#" >8:Toshiba</a></li>
+<li><a href="#" >9:Sony</a></li>
+</ul></li><li><a href="javascript:void(0)" data-target="#sub11" data-toggle="collapse"  >11:Server</a>
+<ul class="nav collapse" id="sub11">
+<li><a href="javascript:void(0)" data-target="#sub13" data-toggle="collapse"  >13:High End Server12</a>
+<ul class="nav collapse" id="sub13">
+<li><a href="#" >14:HP</a></li>
+<li><a href="#" >15:Sun</a></li>
+<li><a href="#" >16:Dell</a></li>
+</ul></li><li><a href="#" >17:Workstation</a></li>
+</ul></li><li><a href="javascript:void(0)" data-target="#sub19" data-toggle="collapse"  >19:Desktop</a>
+<ul class="nav collapse" id="sub19">
+<li><a href="#" >20:Dell PC</a></li>
+<li><a href="javascript:void(0)" data-target="#sub22" data-toggle="collapse"  >22:Lenovo</a>
+<ul class="nav collapse" id="sub22">
+<li><a href="#" >23:ThinkPad</a></li>
+</ul></li></ul></li></ul></li><li><a href="javascript:void(0)" data-target="#sub25" data-toggle="collapse"  >25:Camera</a>
+<ul class="nav collapse" id="sub25">
+<li><a href="#" >26:Handycam</a></li>
+</ul></li><li><a href="javascript:void(0)" data-target="#sub28" data-toggle="collapse"  >28:Phone</a>
+<ul class="nav collapse" id="sub28">
+<li><a href="#" >29:iPhone</a></li>
+<li><a href="#" >30:Sony</a></li>
+<li><a href="#" >31:HTC</a></li>
+<li><a href="#" >32:Samsung</a></li>
+</ul></li><li><a href="javascript:void(0)" data-target="#sub34" data-toggle="collapse"  >34:Accessories</a>
+<ul class="nav collapse" id="sub34">
+<li><a href="#" >35:Hard Disk</a></li>
+</ul></li></ul> -->
+
+<BR><BR>
+	<div ng-app="myApp" ng-controller="FormCtrl">
+		<div class="btn green" ng-click="postData()">Tree Data</div>
+	</div>
+
+<BR><BR>	
+		<fieldset>
+			<legend>Fancytree options</legend>
+			<div id="options">OPTIONS</div>
+		</fieldset>
+	</p>
+	SELECTED VALUES:<br>
+	<span id="echoSelected"></span>
+	<br>
+	<label><input name="showComments" type="checkbox" checked="checked"> Render hint comments</label>
+	<label><input name="hideDefaults" type="checkbox"> Hide default settings</label>
+
+	<!--?prettify linenums=false?-->
+	<pre id="sourceCode" class="prettyprint">
+	</pre>
+
+	<!-- Start_Exclude: This block is not part of the sample code -->
+	<hr>
+	<p class="sample-links  no_code">
+		<a class="hideInsideFS" href="https://github.com/mar10/fancytree">jquery.fancytree.js project home</a>
+		<a class="hideOutsideFS" href="#">Link to this page</a>
+		<a class="hideInsideFS" href="index.html">Example Browser</a>
+<!--
+		<a href="#" id="codeExample">View source code</a>
+-->
+	</p>
+	<!-- End_Exclude -->
+</body>
+</html>
