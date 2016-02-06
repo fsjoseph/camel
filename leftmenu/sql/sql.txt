@@ -1,0 +1,36 @@
+		CREATE TABLE ELECTRONICS (
+		ID int NOT NULL,
+		Name varchar(64) NOT NULL,
+		Parent int NOT NULL);
+
+		INSERT INTO ELECTRONICS  VALUES ('2', 'Computers',  '1');  
+		INSERT INTO ELECTRONICS  VALUES ('3', 'Camera',  '1');  
+		INSERT INTO ELECTRONICS  VALUES ('4', 'Notebook',  '2');  
+		INSERT INTO ELECTRONICS  VALUES ('7', 'Desktop',  '2');  
+		INSERT INTO ELECTRONICS  VALUES ('6', 'Tablet','2');  
+	    INSERT INTO ELECTRONICS  VALUES ('5', 'Server',  '2');  
+		INSERT INTO ELECTRONICS  VALUES ('8', 'Handycam','3');  
+		INSERT INTO ELECTRONICS  VALUES ('9', 'Workstation','5');  
+		INSERT INTO ELECTRONICS  VALUES ('10','High End Server12','5');  
+		INSERT INTO ELECTRONICS  VALUES ('11','Sony','4');  
+		INSERT INTO ELECTRONICS  VALUES ('12','Toshiba','4');  
+		INSERT INTO ELECTRONICS  VALUES ('13','Phone','1');  
+		INSERT INTO ELECTRONICS  VALUES ('14','iPhone','13');  
+		INSERT INTO ELECTRONICS  VALUES ('15','Accessories','1');  
+		INSERT INTO ELECTRONICS  VALUES ('16','Hard Disk','15');  
+		INSERT INTO ELECTRONICS  VALUES ('17', 'Dell PC',  '7');  
+		INSERT INTO ELECTRONICS  VALUES ('18', 'Lenovo',  '7');  
+		INSERT INTO ELECTRONICS  VALUES ('19', 'ThinkPad',  '18');  
+		INSERT INTO ELECTRONICS  VALUES ('20','Samsung','13');  
+		INSERT INTO ELECTRONICS  VALUES ('21','HTC','13');  
+		INSERT INTO ELECTRONICS  VALUES ('22','Sony','13');  
+		INSERT INTO ELECTRONICS  VALUES ('23','Sun','10');  
+		INSERT INTO ELECTRONICS  VALUES ('24','Dell','10');  
+		INSERT INTO ELECTRONICS  VALUES ('25','HP','10');  
+
+		 SELECT  SubMenu.SSN as ID,Menu.ssn as parent, Menu.mssn,Menu.name AS Root, SubMenu.name   AS Node
+		 FROM Electronics AS Menu 
+		 INNER JOIN Electronics SubMenu ON  Menu.SSN = SubMenu.MSSN 
+		 GROUP BY ID,parent, Root, mssn,Node;
+		
+		

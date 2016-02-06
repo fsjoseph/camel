@@ -1,4 +1,3 @@
-package com.sistic;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -10,34 +9,42 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.time.*;
+
+import com.google.gson.Gson;
+
 
 public class RecurseMenu {
-	private static final String TABLE = "electronicsx";
-	private static final String DRIVER = "org.hsqldb.jdbcDriver";
-	private static final String URL = "jdbc:hsqldb:file:hsqldb/camel;shutdown=true";
-	private Set<Integer> itemSet = new HashSet<Integer>();
-	private Integer levels = new Integer(1);
-	List tempList = new  ArrayList ();
-	Statement stmt;
-	Connection conn;
-	
-	
-	public RecurseMenu()throws Exception{
-		conn = DriverManager.getConnection(URL, "SA", "");
-	    stmt = conn.createStatement();
-	}
-	// private static final String URL="jdbc:hsqldb:mem:camel;shutdown=true";
-	public static void main(String[] args)throws Exception {
-		RecurseMenu obj = new RecurseMenu();
 
-		obj.init();
+	private Statement stmt;
+	private Connection conn;
+
+	private static final String TABLE = "electronics";
+	private static final String DRIVER = "com.mysql.jdbc.Driver";
+	private static final String URL = "jdbc:mysql://localhost/camel";
+
+ 	private List<Item> itemsList = new ArrayList<>();
+	private Set<Integer> itemSet = new HashSet<Integer>();
+ 	
+ 
+
+ public static void main(String[] args)throws Exception {
+		
+		LocalTime startTime = LocalTime.now();
+		
+		RecurseMenu obj = new RecurseMenu();
 		obj.process();
-		obj.clean();
+		
+		LocalTime endTime = LocalTime.now();
+		
+		Duration duration = Duration.between(startTime, endTime);
+		
+		System.out.println("difference:" + duration.toMillis());
+		
 	}
 	
 	private void clean()throws SQLException {
@@ -45,76 +52,44 @@ public class RecurseMenu {
 		if(stmt != null) stmt.close();
 		if(conn != null) conn.close();
 	}
-	private void init()throws SQLException{
-		   drop(stmt);
-		   create(stmt);
-		   processSQL(stmt);
-	}
-	
-	private Integer incrementLevel(){
-		 levels = levels + 1;
-		 return levels;
-	}
-	public void process() {
+ 	
+ 	public void process() {
 
 		try {
 
-			// String sql = createSQL();
-			// int result = stmt.executeUpdate(sql);
-
-			List<Item> data = new ArrayList<Item>();
-
-			String qry = getSQL();
+ 			String qry = getSQL();
 			
 			ResultSet rs = getStatement().executeQuery(qry);
 
 			while (rs.next()) {
 
-				Integer id = rs.getInt("ID");
-				Integer parent = rs.getInt("parent");
-				String root = rs.getString("ROOT");
-				String node = rs.getString("NODE");
+				Integer key = rs.getInt("ID");
+				Integer parent = rs.getInt("PARENT");
+				String root = rs.getString("NAME");
+				String node = rs.getString("NAME");
 				
-//				System.out.println("id:" + id + "\tparent:" + parent + "\troot:" + root + ":" + "\tnode:" + node);
-				
-				Item item = new RecurseMenu.Item();
-				item.setId(id);
+  				Item item = new RecurseMenu.Item();
+				item.setKey(key);
 				item.setParent(parent);
 				item.setRoot(root);
+				item.setTitle(root);
 				item.setNode(node);
 
-				data.add(item);
+				itemsList.add(item);
 			}
 
 			Map<String, Item> resultMap = new LinkedHashMap<String, Item>();
 
-			for (Item item : data) {
-				 Integer id = item.getId();
-				 itemSet.add(id);
-			}			
+ 			
+			List<Item> tempList = new ArrayList<>();
+			recurseChildren( itemsList, tempList, null);
+			filter(itemsList);
 			
-			recurse( data, itemSet, null,1);
-			data.removeAll(tempList);
-
-			for (Item item : data) {
-					 Item itm = new RecurseMenu.Item();
-					 itm.setRoot(item.getNode());
-					 if(item.getChildren().size() > 0){
-						 itm.getChildren().addAll(item.getChildren());
-					 }
-				if(!resultMap.containsKey (item.getRoot())){ 
-					  item.getChildren().clear();
-					  item.getChildren().add(itm);
-					  resultMap.put(item.getRoot(),item);
-					  //System.out.println("-------->>>>>>>Added:"+itm.getRoot()+  "#" + item.getChildren().size()); 
-				}else{
-					 resultMap.get(item.getRoot()).getChildren().add(itm);
-					 //System.out.println("-------->>>>>>>Included:"+itm.getRoot()+  "#" + item.getChildren().size()); 
-				}
-			}
+ 			
+			printJson(itemsList);
 			
-			printMap(resultMap.values());
 			
+			/** For LEFTMENU
 			StringBuffer sb = new StringBuffer();
 			sb.append("\n<ul class=\"nav\">");
 			
@@ -124,8 +99,9 @@ public class RecurseMenu {
 			
 			sb.append("</ul>");
 			
-			System.out.println(sb.toString());
-			System.out.println("#############################################################");
+			//System.out.println(sb.toString());
+			//System.out.println("#############################################################");
+			**/
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -136,42 +112,67 @@ public class RecurseMenu {
 
 	private Statement getStatement()throws SQLException {
 		// TODO Auto-generated method stub
-		clean();
-		conn = DriverManager.getConnection(URL, "SA", "");
+		conn = DriverManager.getConnection(URL, "camel", "camel");
 		stmt = conn.createStatement();
-		
+		 
 		return stmt;
 	}
-	public void recurse( List<Item> items, Set<Integer> itemSet,Item newItem, int iterationNo) {
-        iterationNo++;
-        
-		for (Item item : items) {
-			
-			if((newItem != null)){
-				if(newItem.getParent() != item.getId()) continue;
+	
+	public static void recurseChildren( List<Item> items, List tempList, Item newItem) {
+  
+	for (Item item : items) {
+		
+ 			if (newItem != null){
+				
+				if(newItem.isDeleted()) continue;
+				
+				if(newItem.getParent() ==0){
+					newItem.setNode(null);
+					item.setFolder(true);
+					continue;
+				} 
+				
+				if(newItem.getParent() == item.getKey()) {
+					newItem.setRoot(null);
+					item.setNode(null);
 					item.getChildren().add(newItem);
-					tempList.add(newItem);
-					itemSet.remove(newItem.getId());
+					item.setFolder(true);
+					newItem.deleted(true);
+					
+					break;
+				} 	
+			}
+ 			
+			if(newItem == null ){
+			   recurseChildren( items,  tempList, item);
 			}
 			
-			if(itemSet.contains(item.getId())){
-				//itemSet.remove(item.getId());
-				recurse(items,itemSet,item, iterationNo);
-			}
- 		}
+		}
 	}
 
+	private void filter(List<Item> itemsList){
+				
+  			for(Iterator<Item> i = itemsList.iterator(); i.hasNext();){
+				Item item = i.next();
+				
+				if(item.isDeleted()){
+					i.remove();
+				}
+			}
+	}	
 
-	private String getSQL() {
+  	private String getSQL() {
 		StringBuffer sb = new StringBuffer();
 
-		sb.append("SELECT  SubMenu.SSN as ID,Menu.ssn as parent, Menu.mssn,Menu.name AS Root, SubMenu.name   AS Node");
+		sb.append("SELECT ID,NAME,PARENT FROM " + TABLE + " ORDER BY ID");
+		
+		/*SubMenu.SSN as ID,Menu.ssn as parent, Menu.mssn,Menu.name AS Root, SubMenu.name   AS Node");
 		// --GROUP_CONCAT(SUPERVISEE.name ORDER BY SUPERVISEE.name ) AS
 		// Children,
 		// --COUNT(*)
 		sb.append(" FROM " + TABLE + " AS Menu ");
 		sb.append(" INNER JOIN " + TABLE + " SubMenu ON  Menu.SSN = SubMenu.MSSN ");
-		sb.append(" GROUP BY ID,parent, Root, mssn,Node;");
+		sb.append(" GROUP BY ID,parent, Root, mssn,Node;");*/
 
 		return sb.toString();
 	}
@@ -229,16 +230,34 @@ public class RecurseMenu {
 		getStatement().executeUpdate(sb.toString());
 
 	}
+	
+	private void printJson(Collection<Item> data){
+	 
+	  try{
+		 
+		Gson gson = new Gson();
+		String result = gson.toJson(data);
+		System.out.println(result);
+		
+		//java.io.FileWriter writer = new java.io.FileWriter("output.txt");
+		//writer.write(result);
+		//writer.flush();
+		
+	   }catch(Exception e){
+		 e.printStackTrace();
+	   }	
+	}
+	
 	private void printMap(Collection<Item> data){
 		 for (Item item : data) {
-		System.out.println("\n----->" + item.id + ":" + item.getRoot()+"\t---Children:"+ item.getChildren().size());
+		System.out.println("\n----->" + item.getKey() + ":" + item.getRoot()+"\t---Children:"+ item.getChildren().size());
 		
 			for (Item node : item.getChildren()) {
 				System.out.print("\n\t\t---:" +node.getRoot() ); 
 				for (Item child : node.getChildren()) {
-					System.out.print("\tCHILD: " + child.getNode()  + "->"+ child.getId() );  //+ "->" + child.getRoot());
+					System.out.print("\tCHILD: " + child.getNode()  + "->"+ child.getKey() );  //+ "->" + child.getRoot());
 					for (Item child1 : child.getChildren()) 
-						 System.out.print("\t grand CHILD: "+ child1.getNode() + "->" + child1.getId() + "->" + child1.getRoot());
+						 System.out.print("\t grand CHILD: "+ child1.getNode() + "->" + child1.getKey() + "->" + child1.getRoot());
 				}
 			}} 
 		}
@@ -249,12 +268,10 @@ public class RecurseMenu {
 			 String menuItem = item.getRoot();
 			 String nodeItem = item.getNode();
 			 
-			 level = incrementLevel();
-			 
+ 			 
 			  if(item.getChildren().size() > 0){
 				  if(rootItem != null && nodeItem!= null)menuItem=nodeItem;
-				  level = incrementLevel();
-				  sb.append("<li><a href=\"javascript:void(0)\" data-target=\"#sub" +   level  + "\" data-toggle=\"collapse\"  >" + (level+":")+ menuItem  + "</a>\n"); 
+ 				  sb.append("<li><a href=\"javascript:void(0)\" data-target=\"#sub" +   level  + "\" data-toggle=\"collapse\"  >" + (level+":")+ menuItem  + "</a>\n"); 
 				  sb.append( "<ul class=\"nav collapse\" id=\"sub" + level +"\">\n" );
 				  
 				  printData(new ArrayList(item.getChildren()), sb, menuItem,level);
@@ -267,11 +284,16 @@ public class RecurseMenu {
 			  } 
 		}
 	}
+	
+	
 	private class Item {
-		private int id;
-		private int parent;
-		private String node;
+ 		private int parent;
+		private int key;
+ 		private boolean folder;
+		private boolean deleted;
+ 		private String node;
 		private String root;
+		private String title;
 		private Set<Item> children = new HashSet<Item>();
 
 		
@@ -280,9 +302,11 @@ public class RecurseMenu {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + getOuterType().hashCode();
-			result = prime * result + id;
+			result = prime * result + key;
+			result = prime * result + parent;
 			result = prime * result + ((node == null) ? 0 : node.hashCode());
 			result = prime * result + ((root == null) ? 0 : root.hashCode());
+			result = prime * result + ((title == null) ? 0 : title.hashCode());
 			return result;
 		}
 
@@ -297,8 +321,8 @@ public class RecurseMenu {
 			Item other = (Item) obj;
 			if (!getOuterType().equals(other.getOuterType()))
 				return false;
-			if (id != other.id)
-				return false;
+			//if (id != other.id)
+				//return false;
 			if (node == null) {
 				if (other.node != null)
 					return false;
@@ -309,22 +333,20 @@ public class RecurseMenu {
 					return false;
 			} else if (!root.equals(other.root))
 				return false;
+			if (title == null) {
+				if (other.title != null)
+					return false;
+			} else if (!title.equals(other.title))
+				return false;
+
 			return true;
 		}
 
 		private Set<Item> getChildren() {
 			return children;
 		}
-
-		private int getId() {
-			return id;
-		}
-
-		private void setId(int id) {
-			this.id = id;
-		}
-
-		private String getNode() {
+		
+ 		private String getNode() {
 			return node;
 		}
 
@@ -339,6 +361,14 @@ public class RecurseMenu {
 		private void setRoot(String root) {
 			this.root = root;
 		}
+		
+		private String getTitle() {
+			return title;
+		}
+
+		private void setTitle(String title) {
+			this.title = title;
+		}
 
 		private RecurseMenu getOuterType() {
 			return RecurseMenu.this;
@@ -350,6 +380,30 @@ public class RecurseMenu {
 
 		private void setParent(int parent) {
 			this.parent = parent;
+		}
+		
+		private void setFolder(boolean folder){
+			this.folder = folder;
+		}
+		
+		private boolean getFolder(){
+			return folder;
+		}
+		
+		private int getKey(){
+			return key;
+		}
+		
+		private void setKey(int key){
+			this.key = key;
+		}
+		
+		private boolean isDeleted(){
+			return deleted;
+		}
+		
+		private void deleted(boolean deleted){
+			this.deleted = deleted;
 		}
 
 	}
